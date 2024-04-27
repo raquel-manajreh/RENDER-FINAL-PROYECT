@@ -19,6 +19,7 @@ const register = async (req, res) => {
     //validaciones:
     //1.- El usuario no exista (email)
     const valEmail = await validateEmailDB/(req.body.email);
+
     if(!valEmail) { //si no existe valEmail o es = null
     //2.- La contraseña cumpla el patrón requierido (regex)
         const valPassword = validatePassword(req.body.password);//devuelve true o false
@@ -41,7 +42,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const userBdoy = req.body;
+        const userBody = req.body;
         const userDB = await validateEmailDB(userBody.email)
         if(!userDB){
             return res.status(200).json({success: false, message:'El email no está registrado'})
