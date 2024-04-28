@@ -62,7 +62,8 @@ const login = async (req, res) => {
     } catch (error) {
         return res.status(500).json(error);
     }
-}
+};
+
 const modifyProfile = async (req, res) => {
     // console.log('estoy en la funcion de modificar')
     console.log(req.userProfile);
@@ -71,6 +72,14 @@ const modifyProfile = async (req, res) => {
     newUser._id = req.userProfile._idconsole.log(newUser);
     const updateUser = await User.findByIdAndUpdate(req.userProfile._id, newUser, {new: true})
     return res.status(200).json({data: updateUser})
-}
+};
 
-module.exports = {register, validatePassword, login, modifyProfile};
+const getUsers = async (req, res) => {
+    try {
+       const usersDB = await User.find();
+       return res.json(usersDB);
+    } catch (error) {}
+};
+
+
+module.exports = {register, validatePassword, login, modifyProfile, getUsers};
