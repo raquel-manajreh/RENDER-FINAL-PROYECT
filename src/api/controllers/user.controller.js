@@ -18,7 +18,7 @@ const register = async (req, res) => {
 
     //validaciones:
     //1.- El usuario no exista (email)
-    const valEmail = await validateEmailDB/(req.body.email);
+    const valEmail = await validateEmailDB(req.body.email);
 
     if(!valEmail) { //si no existe valEmail o es = null
     //2.- La contraseña cumpla el patrón requierido (regex)
