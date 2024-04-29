@@ -1,19 +1,20 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
-
 const {validateEmailDB, validatePassword} = require('../../utils/validator');
 const {generateToken} = require('../../utils/jwt');
+const transporter = require('../../utils/nodemailer-config');
+const generateRandomNumber = require('../../utils/generateRandomNumber');
 
 const register = async (req, res) => {
 
     try {
         //creo el documento de ususario
-        const userDoc = new User(req.body);
+        const userNew = new User(req.body);
         console.log(req.body);
 
         // Si recibo de cloudinary la ruta de la imagen, se la asigno a la propiedad image de mi nuevo documento
         if(req.file.path){
-            userDoc.image = req.file.path;
+            userNew.image = req.file.path;
         }
 
     //validaciones:
@@ -25,8 +26,30 @@ const register = async (req, res) => {
         const valPassword = validatePassword(req.body.password);//devuelve true o false
         if(valPassword){
         //3.- Encriptar la contraseña antes de registrarme HASH
-            userDoc.password = bcrypt.hashSync(userDoc.password, 10);
-            const createdUser = await userDoc.save();
+            userNew.password = bcrypt.hashSync(userNew.password, 10);
+            userNew.confirmRandom = generateRandomNumber(); //false
+            const createdUser = await userNew.save();
+
+            await transporter.sendMail({
+                from: 'lucas64@ethereal.email',//Desde dónde vamos a enviar el email
+                to: req.body.email, //A dónde quieres mandarlo
+                subject: 'Enviado desde nodemailer',//Asunto
+                text: 'Hola mundo',//Un texto
+                html: `
+                <h4> Bienvenido ${req.body.name} </h4>
+                <p> Haga click en el siguiente enlace para confirmar su cuenta <a href="http://localhost:5001/user/confirm-user/${userNew.confirmRandom}"> </a> </p>
+                `,
+            }, function(error, info){
+                if (error){
+                    console.log(error);
+                    res.send('error al enviar el email');
+                }else{
+                    console.log('correo enviado: ' + info.response)
+                    res.send('correo enviado correctamenre');
+                }
+            });
+
+
             return res.status(200).json({success: true, data: createdUser});
         }else{
             return res.status(200).json({success: false, message: 'La contraseá no cumple con el patrón indicado'});
