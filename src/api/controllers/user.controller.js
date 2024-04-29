@@ -27,7 +27,7 @@ const register = async (req, res) => {
         if(valPassword){
         //3.- Encriptar la contraseña antes de registrarme HASH
             userNew.password = bcrypt.hashSync(userNew.password, 10);
-            userNew.confirmRandom = generateRandomNumber(); //false
+            userNew.confirmUser = generateRandomNumber(); //false
             const createdUser = await userNew.save();
 
             await transporter.sendMail({
@@ -37,7 +37,7 @@ const register = async (req, res) => {
                 text: 'Hola mundo',//Un texto
                 html: `
                 <h4> Bienvenido ${req.body.name} </h4>
-                <p> Haga click en el siguiente enlace para confirmar su cuenta <a href="http://localhost:5001/user/confirm-user/${userNew.confirmRandom}"> </a> </p>
+                <p> Haga click en el siguiente enlace para confirmar su cuenta <a href="http://localhost:5001/user/confirm-user/${userNew.confirmUser}"> HAGA CLICK </a> </p>
                 `,
             }, function(error, info){
                 if (error){
@@ -106,5 +106,21 @@ const getUsers = async (req, res) => {
     }
 };
 
+const confirm = async (req, res) => {
+    //dato de confirmacion, confirmUser es la variable definida en el router, que corresponde al string único guardado en la BD
+    const {confirmUser} = req.params;
+    const userBD = await User.findOne({confirmUser});
+    try {
+        if(userBD){
+            return res.status(403).json({message: 'Codigo incorrecto'})
+        }
+        //cambiar el estatus del usuario para saber que esta confirmado
+        userBD.confirmUser = '';
+        await userBD.save();
+        return res.status(200).json({message: 'Usuario confirmado'});
+    } catch (error) {
+        console.log(error);
+    }
+};
 
-module.exports = {register, validatePassword, login, modifyProfile, getUsers};
+module.exports = {register, login, modifyProfile, getUsers, confirm};
